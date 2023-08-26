@@ -65,13 +65,17 @@ export const average = (arr) =>
 export const KEY = "f84fc31d";
 
 export default function App() {
-  const [query, setQuery] = useState("inception");
-  const [movies, setMovies] = useState(tempMovieData);
+  const [query, setQuery] = useState("");
   const [watched, setWatched] = useState(tempWatchedData);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [selectedId, setSelectedId] = useState(null);
   // const tempQuery = "interstellar";
+  // const [movies, setMovies] = useState(tempMovieData);
+  const [movies, setMovies] = useState(function () {
+    const storedVal = localStorage.getItem("watched");
+    return JSON.parse(storedVal);
+  });
 
   function handleSelectMovie(id) {
     setSelectedId((selectedId) => (id === selectedId ? null : id));
@@ -82,11 +86,19 @@ export default function App() {
   }
   function handleAddWatched(movie) {
     setWatched((watched) => [...watched, movie]);
+    // localStorage.setItem("watched", JSON.stringify([...watched, movie]));
   }
 
   function handleDeleteWatch(id) {
     setWatched((watched) => watched.filter((movie) => movie.imdbID !== id));
   }
+
+  useEffect(
+    function () {
+      localStorage.setItem("watched", JSON.stringify(watched));
+    },
+    [watched]
+  );
 
   useEffect(
     function () {
@@ -115,6 +127,7 @@ export default function App() {
         } catch (err) {
           // console.error(err.message);
           if (err.name !== "AbortError") {
+            console.log(err.message);
             setError(err.message);
           }
         } finally {
@@ -126,6 +139,7 @@ export default function App() {
         setError("");
         return;
       }
+      handleCloseMovie();
       fetchMovies();
       return function () {
         controller.abort();
